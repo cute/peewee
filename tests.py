@@ -583,20 +583,20 @@ class SelectTestCase(BasePeeweeTestCase):
         self.assertSelect(multiple_first, 'track."id", track."artist_id"', [])
         self.assertJoins(multiple_first, [
             'INNER JOIN "artist" AS artist ON (track."artist_id" = artist."id")',
-            'INNER JOIN "genre" AS genre ON (trackgenre."genre_id" = genre."id")',
-            'INNER JOIN "release" AS release ON (releasetrack."release_id" = release."id")',
-            'INNER JOIN "releasetrack" AS releasetrack ON (track."id" = releasetrack."track_id")',
-            'INNER JOIN "trackgenre" AS trackgenre ON (track."id" = trackgenre."track_id")',
+            'INNER JOIN "genre" AS genre ON (track_genre."genre_id" = genre."id")',
+            'INNER JOIN "release" AS release ON (release_track."release_id" = release."id")',
+            'INNER JOIN "release_track" AS release_track ON (track."id" = release_track."track_id")',
+            'INNER JOIN "track_genre" AS track_genre ON (track."id" = track_genre."track_id")',
         ])
 
         single_first = Track.select().join(Artist).switch(Track).join(ReleaseTrack).join(Release).switch(Track).join(TrackGenre).join(Genre)
         self.assertSelect(single_first, 'track."id", track."artist_id"', [])
         self.assertJoins(single_first, [
             'INNER JOIN "artist" AS artist ON (track."artist_id" = artist."id")',
-            'INNER JOIN "genre" AS genre ON (trackgenre."genre_id" = genre."id")',
-            'INNER JOIN "release" AS release ON (releasetrack."release_id" = release."id")',
-            'INNER JOIN "releasetrack" AS releasetrack ON (track."id" = releasetrack."track_id")',
-            'INNER JOIN "trackgenre" AS trackgenre ON (track."id" = trackgenre."track_id")',
+            'INNER JOIN "genre" AS genre ON (track_genre."genre_id" = genre."id")',
+            'INNER JOIN "release" AS release ON (release_track."release_id" = release."id")',
+            'INNER JOIN "release_track" AS release_track ON (track."id" = release_track."track_id")',
+            'INNER JOIN "track_genre" AS track_genre ON (track."id" = track_genre."track_id")',
         ])
 
     def test_joining_expr(self):
@@ -742,10 +742,10 @@ class SelectTestCase(BasePeeweeTestCase):
         self.assertOrderBy(sq, 'count', [])
 
         sq = OrderedModel.select()
-        self.assertOrderBy(sq, 'orderedmodel."created" DESC', [])
+        self.assertOrderBy(sq, 'ordered_model."created" DESC', [])
 
         sq = OrderedModel.select().order_by(OrderedModel.id.asc())
-        self.assertOrderBy(sq, 'orderedmodel."id" ASC', [])
+        self.assertOrderBy(sq, 'ordered_model."id" ASC', [])
 
         sq = User.select().order_by(User.id * 5)
         self.assertOrderBy(sq, '(users."id" * ?)', [5])
@@ -796,8 +796,8 @@ class SelectTestCase(BasePeeweeTestCase):
             ('SELECT t1."id", t1."data" FROM "parent" AS t1', []),
             ('SELECT t1."id", t1."parent_id", t1."data" FROM "child" AS t1 WHERE (t1."parent_id" IN (SELECT t2."id" FROM "parent" AS t2))', []),
             ('SELECT t1."id", t1."parent_id", t1."data" FROM "orphan" AS t1 WHERE (t1."parent_id" IN (SELECT t2."id" FROM "parent" AS t2))', []),
-            ('SELECT t1."id", t1."child_id", t1."data" FROM "childpet" AS t1 WHERE (t1."child_id" IN (SELECT t2."id" FROM "child" AS t2 WHERE (t2."parent_id" IN (SELECT t3."id" FROM "parent" AS t3))))', []),
-            ('SELECT t1."id", t1."orphan_id", t1."data" FROM "orphanpet" AS t1 WHERE (t1."orphan_id" IN (SELECT t2."id" FROM "orphan" AS t2 WHERE (t2."parent_id" IN (SELECT t3."id" FROM "parent" AS t3))))', []),
+            ('SELECT t1."id", t1."child_id", t1."data" FROM "child_pet" AS t1 WHERE (t1."child_id" IN (SELECT t2."id" FROM "child" AS t2 WHERE (t2."parent_id" IN (SELECT t3."id" FROM "parent" AS t3))))', []),
+            ('SELECT t1."id", t1."orphan_id", t1."data" FROM "orphan_pet" AS t1 WHERE (t1."orphan_id" IN (SELECT t2."id" FROM "orphan" AS t2 WHERE (t2."parent_id" IN (SELECT t3."id" FROM "parent" AS t3))))', []),
         ]
         for (query, fkf), expected in zip(fixed, fixed_sql):
             self.assertEqual(normal_compiler.generate_select(query), expected)
@@ -848,7 +848,7 @@ class InsertTestCase(BasePeeweeTestCase):
             pass
         iq = InsertQuery(EmptyModel, {})
         sql, params = compiler.generate_insert(iq)
-        self.assertEqual(sql, 'INSERT INTO "emptymodel"')
+        self.assertEqual(sql, 'INSERT INTO "empty_model"')
 
 class DeleteTestCase(BasePeeweeTestCase):
     def test_where(self):
@@ -2111,7 +2111,7 @@ class CompositeKeyTestCase(ModelTestCase):
     def test_create_table_query(self):
         query = compiler.create_table_sql(TagPostThrough)
         create, tbl, tbldefs = query
-        self.assertEqual(tbl, '"tagpostthrough"')
+        self.assertEqual(tbl, '"tag_post_through"')
         self.assertEqual(tbldefs,
             '("tag_id" INTEGER NOT NULL REFERENCES "tag" ("id") , '
             '"post_id" INTEGER NOT NULL REFERENCES "post" ("id") , '

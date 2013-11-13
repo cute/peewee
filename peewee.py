@@ -1074,6 +1074,10 @@ class QueryCompiler(object):
                 attrs.update(to_pk.attributes)
 
         parts = [self.quote(field.db_column), template]
+        if field.attributes.get('unsigned'):
+            parts.append('UNSIGNED')
+        if not field.default is None:
+            parts.append("DEFAULT '%s'" % field.default)
         if not field.null:
             parts.append('NOT NULL')
         if field.primary_key:
@@ -1102,6 +1106,8 @@ class QueryCompiler(object):
                 meta.fields[f].db_column for f in meta.primary_key.fields))
             columns.append('PRIMARY KEY (%s)' % ', '.join(pk_cols))
         parts.append('(%s)' % ', '.join(columns))
+        if isinstance(meta.database, MySQLDatabase):
+            parts.append('ENGINE=%s DEFAULT CHARSET=utf8' % getattr(meta, 'engine', 'InnoDB'))
         return parts
 
     def create_table(self, model_class, safe=False):
@@ -2333,7 +2339,7 @@ class BaseModel(type):
             isinstance(model_pk, PrimaryKeyField) or
             bool(model_pk.sequence))
         if not cls._meta.db_table:
-            cls._meta.db_table = re.sub('[^\w]+', '_', cls.__name__.lower())
+            cls._meta.db_table = re.sub('[A-Z]+', lambda m: '_' + m.group(0).lower(), cls.__name__).strip('_')
 
         # create a repr and error class before finalizing
         if hasattr(cls, '__unicode__'):
